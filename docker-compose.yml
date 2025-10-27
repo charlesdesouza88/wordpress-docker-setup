@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # WordPress Application
+  wordpress:
+    image: wordpress:latest
+    container_name: wp_wordpress
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress_password
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DEBUG: 1
+      WORDPRESS_CONFIG_EXTRA: |
+        define('WP_DEBUG', true);
+        define('WP_DEBUG_LOG', true);
+        define('WP_DEBUG_DISPLAY', false);
+        define('SCRIPT_DEBUG', true);
+        define('SAVEQUERIES', true);
+    volumes:
+      - ./wp-content:/var/www/html/wp-content
+      - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./wp-config-local.php:/var/www/html/wp-config-local.php
+    networks:
+      - wordpress-network
+    depends_on:
+      - db
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: wp_mysql
+    restart: unless-stopped
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress_password
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    networks:
+      - wordpress-network
+    command: 
+      - --default-authentication-plugin=mysql_native_password
+      - --innodb-buffer-pool-size=256M
+      - --max-connections=200
+
+  # phpMyAdmin for Database Management
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: wp_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: wordpress
+      PMA_PASSWORD: wordpress_password
+      MYSQL_ROOT_PASSWORD: root_password
+      UPLOAD_LIMIT: 64M
+    networks:
+      - wordpress-network
+    depends_on:
+      - db
+
+  # WP-CLI for Command Line Management
+  wpcli:
+    image: wordpress:cli
+    container_name: wp_cli
+    restart: "no"
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress_password
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - ./wp-content:/var/www/html/wp-content
+      - ./wp-config-local.php:/var/www/html/wp-config-local.php
+    networks:
+      - wordpress-network
+    depends_on:
+      - db
+      - wordpress
+
+volumes:
+  db_data:
+    driver: local
+    name: wp_db_data
+
+networks:
+  wordpress-network:
+    driver: bridge
+    name: wp_network
