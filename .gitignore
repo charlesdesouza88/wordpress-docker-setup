@@ -1,0 +1,68 @@
+# WordPress Docker Environment - Git Ignore
+
+# WordPress core files and data
+wp-content/uploads/*
+!wp-content/uploads/.gitkeep
+wp-content/upgrade/
+wp-content/cache/
+wp-content/debug.log
+
+# Keep theme and plugin directories but ignore contents initially
+wp-content/themes/*
+!wp-content/themes/README.md
+wp-content/plugins/*
+wp-content/mu-plugins/*
+
+# Backups directory
+backups/
+*.sql
+*.sql.gz
+
+# Log files
+*.log
+logs/
+setup.log
+
+# Docker volumes and data
+.docker/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js (if using build tools)
+node_modules/
+npm-debug.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# WordPress specific
+wp-config.php
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp-content/cache/
+wp-content/backup-db/
+
+# Security
+.htaccess
+.htpasswd
